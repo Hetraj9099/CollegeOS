@@ -7,7 +7,7 @@ services:
     branch: main
     nodeVersion: 20
     buildCommand: cd backend && npm install && npm run build
-    startCommand: cd backend && node dist/server.js
+    startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV
         value: production
