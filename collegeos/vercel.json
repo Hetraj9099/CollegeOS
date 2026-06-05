@@ -1,0 +1,21 @@
+{
+  "buildCommand": "cd frontend && npm run build",
+  "outputDirectory": "frontend/dist",
+  "installCommand": "cd frontend && npm install",
+  "env": {
+    "VITE_API_URL": "@api-url"
+  },
+  "envs": {
+    "production": {
+      "VITE_API_URL": "@api-url-production"
+    }
+  },
+  "framework": "vite",
+  "regions": ["iad1"],
+  "functions": {
+    "frontend/dist/**": {
+      "memory": 1024,
+      "maxDuration": 60
+    }
+  }
+}
