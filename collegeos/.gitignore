@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+.DS_Store
+.env
+.env.*
+!.env.example
+frontend/dist/
+backend/dist/
+backend/.turbo/
+frontend/.vite/
+*.log
