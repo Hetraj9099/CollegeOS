@@ -1,1 +1,0 @@
--- Placeholder migration for grade_components

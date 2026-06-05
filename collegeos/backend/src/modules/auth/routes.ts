@@ -1,6 +1,10 @@
 import { Router } from "express";
-import { loginController } from "./controller.js";
+import { getSessionController, loginController } from "./controller.js";
+import { authMiddleware } from "../../middleware/auth.js";
 
 export const authRoutes = Router();
 
-authRoutes.get("/", loginController);
+authRoutes.post("/login", (req, res, next) => {
+  void loginController(req, res).catch(next);
+});
+authRoutes.get("/session", authMiddleware, getSessionController);
