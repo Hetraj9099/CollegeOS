@@ -2,11 +2,176 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: light;
+@layer base {
+  :root {
+    color-scheme: dark;
+    --background: 240 10% 3.9%;
+    --foreground: 240 5% 96%;
+    --card: 240 10% 6%;
+    --card-foreground: 240 5% 96%;
+    --popover: 240 10% 4.5%;
+    --popover-foreground: 240 5% 96%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 240 5% 96%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 240 5% 96%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 240 5% 96%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+    --radius: 0.75rem;
+  }
 }
 
 body {
   margin: 0;
-  font-family: Inter, system-ui, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background-color: rgb(9 9 11);
+  color: rgb(244 244 245);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(9 9 11);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(39 39 42);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(63 63 70);
+}
+
+/* Custom styles for input focuses and dark glass panels */
+.glass-panel {
+  background: rgba(24, 24, 27, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(63, 63, 70, 0.4);
+}
+
+/* Smooth transitions */
+.transition-all-200 {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Active Nav Links styling */
+.nav-link-active {
+  background-color: rgb(39 39 42);
+  color: rgb(250 250 250);
+}
+
+/* Pulse animation for active study session timer */
+@keyframes timerPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px 4px rgba(14, 165, 233, 0.2);
+  }
+}
+
+.timer-active-pulse {
+  animation: timerPulse 2s infinite;
+}
+
+/* Custom style for Timetable grid cell heights */
+.timetable-hour-row {
+  height: 60px;
+}
+
+/* FullCalendar Dark Mode Styling */
+.fc-dark-theme-wrapper .fc {
+  --fc-page-bg-color: transparent;
+  --fc-border-color: rgb(39 39 42);
+  --fc-button-bg-color: rgb(39 39 42);
+  --fc-button-border-color: rgb(39 39 42);
+  --fc-button-hover-bg-color: rgb(63 63 70);
+  --fc-button-hover-border-color: rgb(63 63 70);
+  --fc-button-active-bg-color: rgb(82 82 91);
+  --fc-button-active-border-color: rgb(82 82 91);
+  --fc-text-muted-color: rgb(161 161 170);
+  --fc-neutral-bg-color: rgb(24 24 27);
+  --fc-neutral-text-color: rgb(244 244 245);
+  --fc-list-event-hover-bg-color: rgb(39 39 42);
+  color: rgb(244 244 245);
+}
+
+.fc-dark-theme-wrapper .fc button {
+  color: rgb(244 244 245);
+}
+
+.fc-dark-theme-wrapper .fc .fc-col-header-cell {
+  background-color: rgb(24 24 27);
+  color: rgb(244 244 245);
+  border-color: rgb(39 39 42);
+  padding: 12px 2px;
+  font-weight: 600;
+}
+
+.fc-dark-theme-wrapper .fc .fc-daygrid-day {
+  background-color: transparent;
+  border-color: rgb(39 39 42);
+}
+
+.fc-dark-theme-wrapper .fc .fc-daygrid-day-number {
+  color: rgb(244 244 245);
+  padding: 8px 4px;
+}
+
+.fc-dark-theme-wrapper .fc .fc-daygrid-day.fc-day-other {
+  background-color: rgba(39, 39, 42, 0.3);
+}
+
+.fc-dark-theme-wrapper .fc .fc-daygrid-day.fc-day-today {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.fc-dark-theme-wrapper .fc .fc-daygrid-day:hover {
+  background-color: rgba(63, 63, 70, 0.2);
+}
+
+.fc-dark-theme-wrapper .fc .fc-daygrid-day-frame {
+  background-color: transparent;
+}
+
+.fc-dark-theme-wrapper .fc .fc-event {
+  border: none;
+}
+
+.fc-dark-theme-wrapper .fc .fc-event-title {
+  color: rgb(255 255 255);
+  font-weight: 600;
+  padding: 2px 4px;
+}
+
+.fc-dark-theme-wrapper .fc .fc-button-primary:not(:disabled) {
+  color: rgb(244 244 245);
+}
+
+.fc-dark-theme-wrapper .fc .fc-button-primary:not(:disabled).fc-button-active {
+  background-color: rgb(59 130 246);
+  border-color: rgb(59 130 246);
+}
+
+.fc-dark-theme-wrapper .fc .fc-daygrid-day-table {
+  border-color: rgb(39 39 42);
+}
+
+.fc-dark-theme-wrapper .fc .fc-daygrid-body {
+  border-color: rgb(39 39 42);
 }

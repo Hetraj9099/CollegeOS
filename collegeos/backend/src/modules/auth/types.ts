@@ -2,6 +2,11 @@ export type AuthModule = {
   name: "auth";
 };
 
-export type AuthSession = {
-  token: string;
+export type AuthStatus = {
+  hasUser: boolean;
+  authenticated: boolean;
+};
+
+export type AuthenticatedUser = {
+  userId: string;
 };

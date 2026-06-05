@@ -40,11 +40,7 @@ Run seed data:
 npm run db:seed --workspace backend
 ```
 
-Default seeded master password:
-
-```text
-Hetraj_8520
-```
+The seed script intentionally does not create the application user, so a fresh app still goes through the first-launch setup flow.
 
 ## Tables
 
@@ -79,3 +75,4 @@ tasks 1---* study_sessions (SET NULL on delete)
 - `updated_at` is maintained by a shared trigger function where applicable.
 - `study_sessions.duration_minutes` is a generated column derived from `start_time` and `end_time`.
 - Migrations are tracked in `migration_history` to prevent duplicate execution.
+- The initial application user is created through the app setup flow, not through database seeding.

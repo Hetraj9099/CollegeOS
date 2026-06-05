@@ -1,15 +1,34 @@
 import { AuthRepository } from "./repository.js";
-import jwt from "jsonwebtoken";
-import type { SignOptions } from "jsonwebtoken";
-import { env } from "../../config/env.js";
-import { verifyPassword } from "../../utils/password.js";
+import { hashPassword, verifyPassword } from "../../utils/password.js";
 
 export class AuthService {
   constructor(private readonly repository = new AuthRepository()) {
     void this.repository;
   }
 
-  async login(password: string) {
+  async getStatus() {
+    const userCount = await this.repository.countUsers();
+    return { hasUser: userCount > 0 };
+  }
+
+  async setup(password: string) {
+    const status = await this.getStatus();
+
+    if (status.hasUser) {
+      return null;
+    }
+
+    const passwordHash = await hashPassword(password);
+    const user = await this.repository.createUser(passwordHash);
+
+    if (!user) {
+      return null;
+    }
+
+    return { userId: user.id };
+  }
+
+  async unlock(password: string) {
     const user = await this.repository.findPrimaryUser();
 
     if (!user) {
@@ -22,10 +41,6 @@ export class AuthService {
       return null;
     }
 
-    const token = jwt.sign({ sub: user.id }, env.JWT_SECRET, {
-      expiresIn: env.JWT_EXPIRES_IN as SignOptions["expiresIn"]
-    });
-
-    return { token };
+    return { userId: user.id };
   }
 }

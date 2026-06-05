@@ -4,28 +4,31 @@ import { apiClient } from "@/services/api-client";
 import { useAuthStore } from "@/store/auth-store";
 
 export function AuthBootstrap({ children }: PropsWithChildren) {
-  const { token, clearSession, setInitialized } = useAuthStore();
+  const { setAuthState } = useAuthStore();
 
   useEffect(() => {
     let cancelled = false;
 
     async function bootstrap() {
-      if (!token) {
-        if (!cancelled) {
-          setInitialized(true);
-        }
-        return;
-      }
-
       try {
-        await apiClient.get("/auth/session");
+        const response = await apiClient.get<{ hasUser: boolean; authenticated: boolean }>(
+          "/auth/status"
+        );
+
+        if (!cancelled) {
+          setAuthState({
+            hasUser: response.data.hasUser,
+            authenticated: response.data.authenticated,
+            initialized: true
+          });
+        }
       } catch {
         if (!cancelled) {
-          clearSession();
-        }
-      } finally {
-        if (!cancelled) {
-          setInitialized(true);
+          setAuthState({
+            hasUser: true,
+            authenticated: false,
+            initialized: true
+          });
         }
       }
     }
@@ -35,7 +38,7 @@ export function AuthBootstrap({ children }: PropsWithChildren) {
     return () => {
       cancelled = true;
     };
-  }, [token, clearSession, setInitialized]);
+  }, [setAuthState]);
 
   return <>{children}</>;
 }

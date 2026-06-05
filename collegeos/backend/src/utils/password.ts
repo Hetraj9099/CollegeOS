@@ -1,28 +1,11 @@
-import { randomBytes, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
-import { promisify } from "node:util";
+import bcrypt from "bcrypt";
 
-const scrypt = promisify(scryptCallback);
-const KEY_LENGTH = 64;
+const SALT_ROUNDS = 12;
 
 export async function hashPassword(password: string) {
-  const salt = randomBytes(16).toString("hex");
-  const derivedKey = (await scrypt(password, salt, KEY_LENGTH)) as Buffer;
-  return `${salt}:${derivedKey.toString("hex")}`;
+  return bcrypt.hash(password, SALT_ROUNDS);
 }
 
-export async function verifyPassword(password: string, storedHash: string) {
-  const [salt, hash] = storedHash.split(":");
-
-  if (!salt || !hash) {
-    return false;
-  }
-
-  const derivedKey = (await scrypt(password, salt, KEY_LENGTH)) as Buffer;
-  const hashBuffer = Buffer.from(hash, "hex");
-
-  if (derivedKey.length !== hashBuffer.length) {
-    return false;
-  }
-
-  return timingSafeEqual(derivedKey, hashBuffer);
+export async function verifyPassword(password: string, passwordHash: string) {
+  return bcrypt.compare(password, passwordHash);
 }

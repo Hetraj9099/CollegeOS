@@ -15,3 +15,6 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL CHECK (length(btrim(password_hash)) > 0),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_users_singleton
+  ON users ((true));

@@ -9,10 +9,12 @@ import { timetableRoutes } from "../modules/timetable/routes.js";
 import { studyRoutes } from "../modules/study/routes.js";
 import { analyticsRoutes } from "../modules/analytics/routes.js";
 import { cgpaRoutes } from "../modules/cgpa/routes.js";
+import { authMiddleware } from "../middleware/auth.js";
 
 export const apiRouter = Router();
 
 apiRouter.use("/auth", authRoutes);
+apiRouter.use(authMiddleware);
 apiRouter.use("/semesters", semestersRoutes);
 apiRouter.use("/subjects", subjectsRoutes);
 apiRouter.use("/grades", gradesRoutes);

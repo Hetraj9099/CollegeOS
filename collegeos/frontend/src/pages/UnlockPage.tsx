@@ -2,14 +2,19 @@ import { FormEvent, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { apiClient } from "@/services/api-client";
 import { useAuthStore } from "@/store/auth-store";
+import logoSvg from "@/assets/collegeos-logo.svg";
 
-export function LoginPage() {
-  const { isAuthenticated, initialized, setSession } = useAuthStore();
+export function UnlockPage() {
+  const { authenticated, hasUser, initialized, setAuthState } = useAuthStore();
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  if (initialized && isAuthenticated) {
+  if (initialized && !hasUser) {
+    return <Navigate to="/setup" replace />;
+  }
+
+  if (initialized && authenticated) {
     return <Navigate to="/" replace />;
   }
 
@@ -19,11 +24,16 @@ export function LoginPage() {
     setError(null);
 
     try {
-      const response = await apiClient.post<{ token: string }>("/auth/login", {
-        password
-      });
+      const response = await apiClient.post<{ hasUser: boolean; authenticated: boolean }>(
+        "/auth/unlock",
+        { password }
+      );
 
-      setSession(response.data.token);
+      setAuthState({
+        hasUser: response.data.hasUser,
+        authenticated: response.data.authenticated,
+        initialized: true
+      });
     } catch {
       setError("Incorrect password. Please try again.");
     } finally {
@@ -34,10 +44,13 @@ export function LoginPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-slate-50">
       <section className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-8 shadow-2xl">
-        <h1 className="text-3xl font-semibold">CollegeOS</h1>
-        <p className="mt-3 text-sm text-slate-300">
-          Enter the master password to access your workspace.
-        </p>
+        <div className="flex flex-col items-center justify-center mb-6">
+          <img src={logoSvg} alt="CollegeOS Logo" className="h-16 w-16 object-contain mb-3" />
+          <h1 className="text-3xl font-semibold text-center">Unlock CollegeOS</h1>
+          <p className="mt-3 text-sm text-slate-300 text-center">
+            Enter your master password to open your academic workspace.
+          </p>
+        </div>
 
         <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
           <label className="block text-sm font-medium text-slate-200" htmlFor="password">

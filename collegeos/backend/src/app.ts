@@ -6,26 +6,25 @@ import { apiRouter } from "./routes/index.js";
 import { errorHandler } from "./middleware/error-handler.js";
 import { notFoundHandler } from "./middleware/not-found.js";
 
-const app = express();
+export function createApp() {
+  const app = express();
 
-app.use(helmet());
-app.use(
-  cors({
-    origin: env.CLIENT_URL
-  })
-);
-app.use(express.json());
+  app.use(helmet());
+  app.use(
+    cors({
+      origin: env.CLIENT_URL,
+      credentials: true
+    })
+  );
+  app.use(express.json());
 
-app.get("/health", (_req, res) => {
-  res.status(200).json({ status: "ok" });
-});
+  app.get("/health", (_req, res) => {
+    res.status(200).json({ status: "ok" });
+  });
 
-app.use("/api", apiRouter);
-app.use(notFoundHandler);
-app.use(errorHandler);
+  app.use("/api", apiRouter);
+  app.use(notFoundHandler);
+  app.use(errorHandler);
 
-app.listen(env.PORT, () => {
-  console.log(`CollegeOS backend listening on port ${env.PORT}`);
-});
-
-export { app };
+  return app;
+}

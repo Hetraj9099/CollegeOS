@@ -1,39 +1,10 @@
 import { closeDatabaseConnection, db } from "./connection.js";
-import { hashPassword } from "../utils/password.js";
 
 async function seed() {
   const client = await db.connect();
 
   try {
     await client.query("BEGIN");
-    const seededPasswordHash = await hashPassword("Hetraj_8520");
-
-    const existingUserResult = await client.query<{ id: string }>(
-      "SELECT id FROM users ORDER BY created_at ASC LIMIT 1"
-    );
-    const userId =
-      existingUserResult.rows[0]?.id ??
-      (
-        await client.query<{ id: string }>(
-          `
-          INSERT INTO users (password_hash)
-          VALUES ($1)
-          RETURNING id
-          `,
-          [seededPasswordHash]
-        )
-      ).rows[0].id;
-
-    if (existingUserResult.rows[0]?.id) {
-      await client.query(
-        `
-        UPDATE users
-        SET password_hash = $1
-        WHERE id = $2
-        `,
-        [seededPasswordHash, userId]
-      );
-    }
 
     const semesterResult = await client.query<{ id: string }>(
       `
@@ -45,7 +16,7 @@ async function seed() {
         cgpa
       )
       VALUES ($1, $2, $3, $4, $5)
-      ON CONFLICT (semester_number) DO UPDATE
+      ON CONFLICT (academic_year, semester_number) DO UPDATE
       SET
         academic_year = EXCLUDED.academic_year,
         total_credits = EXCLUDED.total_credits,
@@ -243,7 +214,7 @@ async function seed() {
     }
 
     await client.query("COMMIT");
-    console.log(`Seed completed successfully for user ${userId}.`);
+    console.log("Seed completed successfully.");
   } catch (error) {
     await client.query("ROLLBACK");
     throw error;

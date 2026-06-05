@@ -1,10 +1,23 @@
 import { Router } from "express";
-import { getSessionController, loginController } from "./controller.js";
+import {
+  getAuthStatusController,
+  getSessionController,
+  logoutController,
+  setupController,
+  unlockController
+} from "./controller.js";
 import { authMiddleware } from "../../middleware/auth.js";
 
 export const authRoutes = Router();
 
-authRoutes.post("/login", (req, res, next) => {
-  void loginController(req, res).catch(next);
+authRoutes.get("/status", (req, res, next) => {
+  void getAuthStatusController(req, res).catch(next);
+});
+authRoutes.post("/setup", (req, res, next) => {
+  void setupController(req, res).catch(next);
+});
+authRoutes.post("/unlock", (req, res, next) => {
+  void unlockController(req, res).catch(next);
 });
 authRoutes.get("/session", authMiddleware, getSessionController);
+authRoutes.post("/logout", logoutController);
