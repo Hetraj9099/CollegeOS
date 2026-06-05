@@ -11,6 +11,10 @@ export class AuthService {
     return { hasUser: userCount > 0 };
   }
 
+  async getPrimaryUser() {
+    return this.repository.findPrimaryUser();
+  }
+
   async setup(password: string) {
     const status = await this.getStatus();
 

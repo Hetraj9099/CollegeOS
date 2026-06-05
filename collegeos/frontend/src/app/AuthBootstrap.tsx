@@ -11,18 +11,49 @@ export function AuthBootstrap({ children }: PropsWithChildren) {
 
     async function bootstrap() {
       try {
-        const response = await apiClient.get<{ hasUser: boolean; authenticated: boolean }>(
+        // Get current status
+        const statusResponse = await apiClient.get<{ hasUser: boolean; authenticated: boolean }>(
           "/auth/status"
         );
 
-        if (!cancelled) {
-          setAuthState({
-            hasUser: response.data.hasUser,
-            authenticated: response.data.authenticated,
-            initialized: true
-          });
+        if (cancelled) return;
+
+        // If no user exists, auto-setup
+        if (!statusResponse.data.hasUser) {
+          try {
+            const setupResponse = await apiClient.post<{ hasUser: boolean; authenticated: boolean }>(
+              "/auth/setup",
+              {}
+            );
+            if (!cancelled) {
+              setAuthState({
+                hasUser: setupResponse.data.hasUser,
+                authenticated: true,
+                initialized: true
+              });
+            }
+          } catch (setupError) {
+            console.error("Auto-setup failed:", setupError);
+            if (!cancelled) {
+              setAuthState({
+                hasUser: false,
+                authenticated: false,
+                initialized: true
+              });
+            }
+          }
+        } else {
+          // User exists, authenticate
+          if (!cancelled) {
+            setAuthState({
+              hasUser: statusResponse.data.hasUser,
+              authenticated: true,
+              initialized: true
+            });
+          }
         }
-      } catch {
+      } catch (error) {
+        console.error("Bootstrap error:", error);
         if (!cancelled) {
           setAuthState({
             hasUser: true,

@@ -5,23 +5,13 @@ import { CalendarPage } from "@/pages/CalendarPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { GradesPage } from "@/pages/GradesPage";
 import { SettingsPage } from "@/pages/SettingsPage";
-import { SetupPage } from "@/pages/SetupPage";
 import { StudyLogsPage } from "@/pages/StudyLogsPage";
 import { StudyTimerPage } from "@/pages/StudyTimerPage";
 import { TasksPage } from "@/pages/TasksPage";
 import { TimetablePage } from "@/pages/TimetablePage";
-import { UnlockPage } from "@/pages/UnlockPage";
 import { RequireAuth } from "@/routes/RequireAuth";
 
 const router = createBrowserRouter([
-  {
-    path: "/setup",
-    element: <SetupPage />
-  },
-  {
-    path: "/unlock",
-    element: <UnlockPage />
-  },
   {
     element: <RequireAuth />,
     children: [

@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
 import { AuthService } from "./service.js";
-import { setupSchema, unlockSchema } from "./validator.js";
 import {
   buildClearedSessionCookie,
   buildSessionCookie,
@@ -16,12 +15,29 @@ export async function getAuthStatusController(req: Request, res: Response) {
   const token = readSessionToken(req.headers.cookie);
   let authenticated = false;
 
-  if (token) {
-    try {
-      verifySessionToken(token);
-      authenticated = true;
-    } catch {
-      authenticated = false;
+  // If user exists and no valid token, create one automatically
+  if (status.hasUser) {
+    if (token) {
+      try {
+        verifySessionToken(token);
+        authenticated = true;
+      } catch {
+        // Token invalid, create new one
+        const user = await service.getPrimaryUser();
+        if (user) {
+          const newToken = createSessionToken(user.id);
+          res.setHeader("Set-Cookie", buildSessionCookie(newToken));
+          authenticated = true;
+        }
+      }
+    } else {
+      // No token, create one for existing user
+      const user = await service.getPrimaryUser();
+      if (user) {
+        const newToken = createSessionToken(user.id);
+        res.setHeader("Set-Cookie", buildSessionCookie(newToken));
+        authenticated = true;
+      }
     }
   }
 
@@ -32,41 +48,34 @@ export async function getAuthStatusController(req: Request, res: Response) {
 }
 
 export async function setupController(req: Request, res: Response) {
-  const parseResult = setupSchema.safeParse(req.body);
+  // Auto-setup: create a user with default password if one doesn't exist
+  let user = await service.getPrimaryUser();
 
-  if (!parseResult.success) {
-    res.status(400).json({ message: "Invalid setup payload" });
-    return;
+  if (!user) {
+    // Create user with default password
+    const setupResult = await service.setup("default-collegeos-user");
+    if (!setupResult) {
+      res.status(500).json({ message: "Failed to create user" });
+      return;
+    }
+    user = { id: setupResult.userId, password_hash: "" };
   }
 
-  const result = await service.setup(parseResult.data.password);
-
-  if (!result) {
-    res.status(409).json({ message: "User is already configured" });
-    return;
-  }
-
-  const token = createSessionToken(result.userId);
+  const token = createSessionToken(user.id);
   res.setHeader("Set-Cookie", buildSessionCookie(token));
   res.status(201).json({ hasUser: true, authenticated: true });
 }
 
 export async function unlockController(req: Request, res: Response) {
-  const parseResult = unlockSchema.safeParse(req.body);
+  // No password verification needed - just authenticate existing user
+  const user = await service.getPrimaryUser();
 
-  if (!parseResult.success) {
-    res.status(400).json({ message: "Invalid unlock payload" });
+  if (!user) {
+    res.status(401).json({ message: "No user configured" });
     return;
   }
 
-  const result = await service.unlock(parseResult.data.password);
-
-  if (!result) {
-    res.status(401).json({ message: "Invalid password" });
-    return;
-  }
-
-  const token = createSessionToken(result.userId);
+  const token = createSessionToken(user.id);
   res.setHeader("Set-Cookie", buildSessionCookie(token));
   res.status(200).json({ hasUser: true, authenticated: true });
 }

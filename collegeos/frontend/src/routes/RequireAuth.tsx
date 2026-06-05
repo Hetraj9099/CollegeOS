@@ -1,8 +1,8 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import { useAuthStore } from "@/store/auth-store";
 
 export function RequireAuth() {
-  const { authenticated, initialized, hasUser } = useAuthStore();
+  const { initialized } = useAuthStore();
 
   if (!initialized) {
     return (
@@ -10,14 +10,6 @@ export function RequireAuth() {
         Loading workspace...
       </div>
     );
-  }
-
-  if (!hasUser) {
-    return <Navigate to="/setup" replace />;
-  }
-
-  if (!authenticated) {
-    return <Navigate to="/unlock" replace />;
   }
 
   return <Outlet />;
