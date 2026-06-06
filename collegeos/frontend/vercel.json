@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://collegeos-backend.onrender.com"
+      "destination": "https://collegeos-backend.onrender.com/api/:path*"
     },
     {
       "source": "/(.*)",
