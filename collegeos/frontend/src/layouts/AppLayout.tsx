@@ -2,7 +2,7 @@ import type { PropsWithChildren } from "react";
 import { useState } from "react";
 import { Navigation } from "@/components/common/Navigation";
 import { Menu, X } from "lucide-react";
-import logoSvg from "@/assets/collegeos-logo.svg";
+import logoPng from "@/assets/collegeos-logo.png";
 
 export function AppLayout({ children }: PropsWithChildren) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -17,7 +17,7 @@ export function AppLayout({ children }: PropsWithChildren) {
       {/* Header for Mobile only */}
       <header className="flex h-16 items-center justify-between border-b border-zinc-800 bg-zinc-900/40 px-6 backdrop-blur-md md:hidden">
         <div className="flex items-center gap-3">
-          <img src={logoSvg} alt="CollegeOS Logo" className="h-7 w-7 object-contain" />
+          <img src={logoPng} alt="CollegeOS Logo" className="h-7 w-7 object-contain" />
           <span className="text-lg font-bold tracking-tight">CollegeOS</span>
         </div>
         <button

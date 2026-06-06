@@ -2,7 +2,7 @@ import { FormEvent, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { apiClient } from "@/services/api-client";
 import { useAuthStore } from "@/store/auth-store";
-import logoSvg from "@/assets/collegeos-logo.svg";
+import logoPng from "@/assets/collegeos-logo.png";
 
 export function UnlockPage() {
   const { authenticated, hasUser, initialized, setAuthState } = useAuthStore();
@@ -45,7 +45,7 @@ export function UnlockPage() {
     <main className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-slate-50">
       <section className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-8 shadow-2xl">
         <div className="flex flex-col items-center justify-center mb-6">
-          <img src={logoSvg} alt="CollegeOS Logo" className="h-16 w-16 object-contain mb-3" />
+          <img src={logoPng} alt="CollegeOS Logo" className="h-16 w-16 object-contain mb-3" />
           <h1 className="text-3xl font-semibold text-center">Unlock CollegeOS</h1>
           <p className="mt-3 text-sm text-slate-300 text-center">
             Enter your master password to open your academic workspace.

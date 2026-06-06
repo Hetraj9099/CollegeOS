@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { apiClient } from "@/services/api-client";
 import { useAuthStore } from "@/store/auth-store";
-import logoSvg from "@/assets/collegeos-logo.svg";
+import logoPng from "@/assets/collegeos-logo.png";
 import {
   LayoutDashboard,
   Calendar,
@@ -47,7 +47,7 @@ export function Navigation() {
       <div className="space-y-6">
         {/* Brand Header */}
         <div className="flex items-center gap-3 px-3 py-2">
-          <img src={logoSvg} alt="CollegeOS Logo" className="h-8 w-8 object-contain" />
+          <img src={logoPng} alt="CollegeOS Logo" className="h-8 w-8 object-contain" />
           <span className="text-xl font-bold tracking-tight text-zinc-50">CollegeOS</span>
         </div>
 
