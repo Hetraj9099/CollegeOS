@@ -1,11 +1,16 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { existsSync } from "node:fs";
 import { closeDatabaseConnection, db } from "./connection.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const migrationsDirectory = path.join(__dirname, "migrations");
+let migrationsDirectory = path.join(__dirname, "migrations");
+
+if (!existsSync(migrationsDirectory)) {
+  migrationsDirectory = path.join(__dirname, "..", "..", "src", "database", "migrations");
+}
 
 async function ensureMigrationHistoryTable() {
   await db.query(`
