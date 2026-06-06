@@ -248,10 +248,10 @@ export function TasksPage() {
     }
   }
 
-  const latestSemester = semesters.reduce((latest, current) => {
-    return (!latest || current.semester_number > latest.semester_number) ? current : latest;
-  }, null as Semester | null);
-
+  // Derive latest semester subjects
+  const latestSemester = semesters.reduce((latest, curr) =>
+    !latest || curr.semester_number > latest.semester_number ? curr : latest
+  , null as Semester | null);
   const filteredSubjects = latestSemester
     ? subjects.filter(s => s.semester_id === latestSemester.id)
     : subjects;

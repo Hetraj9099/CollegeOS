@@ -13,9 +13,15 @@ import {
 
 interface Subject {
   id: string;
+  semester_id: string;
   name: string;
   course_code: string;
   color: string;
+}
+
+interface Semester {
+  id: string;
+  semester_number: number;
 }
 
 interface Task {
@@ -45,6 +51,7 @@ interface StreakSummary {
 
 export function StudyTimerPage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [semesters, setSemesters] = useState<Semester[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activeSession, setActiveSession] = useState<ActiveSession | null>(null);
   const [streak, setStreak] = useState<StreakSummary | null>(null);
@@ -65,6 +72,7 @@ export function StudyTimerPage() {
   useEffect(() => {
     fetchActiveSession();
     fetchSubjects();
+    fetchSemesters();
     fetchTasks();
     fetchStreak();
     return () => stopVisualTimer();
@@ -92,11 +100,17 @@ export function StudyTimerPage() {
     try {
       const response = await apiClient.get<Subject[]>("/subjects");
       setSubjects(response.data);
-      if (response.data.length > 0) {
-        setSubjectId(response.data[0].id);
-      }
     } catch (err) {
       console.error("Error fetching subjects:", err);
+    }
+  }
+
+  async function fetchSemesters() {
+    try {
+      const response = await apiClient.get<Semester[]>("/semesters");
+      setSemesters(response.data);
+    } catch (err) {
+      console.error("Error fetching semesters:", err);
     }
   }
 
@@ -192,6 +206,14 @@ export function StudyTimerPage() {
       String(secs).padStart(2, "0")
     ].filter(Boolean).join(":");
   };
+
+  // Only show subjects from the latest semester
+  const latestSemester = semesters.reduce((latest, curr) =>
+    !latest || curr.semester_number > latest.semester_number ? curr : latest
+  , null as Semester | null);
+  const filteredSubjects = latestSemester
+    ? subjects.filter(s => s.semester_id === latestSemester.id)
+    : subjects;
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -304,7 +326,7 @@ export function StudyTimerPage() {
                     className="mt-2 w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm text-zinc-50 outline-none focus:border-sky-500"
                   >
                     <option value="">No Subject (General Personal study)</option>
-                    {subjects.map(s => (
+                    {filteredSubjects.map(s => (
                       <option key={s.id} value={s.id}>{s.name} ({s.course_code})</option>
                     ))}
                   </select>

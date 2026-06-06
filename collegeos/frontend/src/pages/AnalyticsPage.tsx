@@ -20,7 +20,9 @@ import {
   Activity, 
   TrendingUp, 
   Award,
-  BookOpen
+  BookOpen,
+  AlertCircle,
+  RefreshCw
 } from "lucide-react";
 
 interface StudyTrendPoint {
@@ -60,19 +62,37 @@ interface AnalyticsData {
 
 export function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     fetchAnalytics();
   }, []);
 
   async function fetchAnalytics() {
+    setError(false);
     try {
       const tzOffset = new Date().getTimezoneOffset();
       const response = await apiClient.get<AnalyticsData>(`/analytics?tzOffset=${tzOffset}`);
       setData(response.data);
     } catch (err) {
       console.error("Error fetching analytics data:", err);
+      setError(true);
     }
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-64 flex-col items-center justify-center gap-4 text-zinc-500">
+        <AlertCircle size={36} className="text-rose-400" />
+        <p className="text-sm text-zinc-400">Failed to load analytics data.</p>
+        <button
+          onClick={fetchAnalytics}
+          className="flex items-center gap-2 rounded-xl bg-zinc-800 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-700 transition"
+        >
+          <RefreshCw size={14} /> Retry
+        </button>
+      </div>
+    );
   }
 
   if (!data) {
