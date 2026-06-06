@@ -1,5 +1,6 @@
 import { SubjectsRepository } from "./repository.js";
 import { GradesRepository } from "../grades/repository.js";
+import { SemestersRepository } from "../semesters/repository.js";
 import type { CreateSubjectPayload } from "./types.js";
 
 export class SubjectsService {
@@ -59,6 +60,9 @@ export class SubjectsService {
       });
     }
 
+    const semestersRepo = new SemestersRepository();
+    await semestersRepo.recalculateGpa(payload.semester_id);
+
     return subject;
   }
 
@@ -67,6 +71,12 @@ export class SubjectsService {
   }
 
   async deleteSubject(id: string) {
-    return this.repository.delete(id);
+    const subject = await this.repository.findById(id);
+    if (subject) {
+      await this.repository.delete(id);
+      const semestersRepo = new SemestersRepository();
+      await semestersRepo.recalculateGpa(subject.semester_id);
+    }
+    return subject;
   }
 }

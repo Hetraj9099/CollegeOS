@@ -85,6 +85,8 @@ export function GradesPage() {
   const [selectedSemesterId, setSelectedSemesterId] = useState<string>("");
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>("");
   const [subjectSummary, setSubjectSummary] = useState<SubjectSummary | null>(null);
+
+  const selectedSemester = semesters.find((s) => s.id === selectedSemesterId);
   
   // CGPA Planner States
   const [goal, setGoal] = useState<CgpaFeasibility | null>(null);
@@ -160,7 +162,7 @@ export function GradesPage() {
 
   async function fetchSubjects(semId: string) {
     try {
-      const response = await apiClient.get<Subject[]>(`/subjects?semester_id=${semId}`);
+      const response = await apiClient.get<Subject[]>(`/subjects?semesterId=${semId}`);
       setSubjects(response.data);
       if (response.data.length > 0) {
         setSelectedSubjectId(response.data[0].id);
@@ -634,7 +636,9 @@ export function GradesPage() {
                       className="flex-1 text-left"
                     >
                       Semester {s.semester_number}
-                      <span className="text-[10px] text-zinc-500 block">{s.academic_year}</span>
+                      <span className="text-[10px] text-zinc-500 block">
+                        {s.academic_year} {s.sgpa !== null && ` • SGPA: ${Number(s.sgpa).toFixed(2)}`}
+                      </span>
                     </button>
                     <button
                       onClick={() => handleDeleteSemester(s.id)}
@@ -652,6 +656,43 @@ export function GradesPage() {
           <div className="md:col-span-3 space-y-6">
             {selectedSemesterId ? (
               <>
+                {/* Semester Summary Cards */}
+                {selectedSemester && selectedSemester.sgpa !== null && (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {/* SGPA Card */}
+                    <div className="relative overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5 backdrop-blur-md transition-all duration-300 hover:border-zinc-700/60 hover:bg-zinc-900/60">
+                      <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-sky-500/5 blur-2xl" />
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-xl bg-sky-500/10 p-2.5 text-sky-400">
+                          <Award size={20} />
+                        </div>
+                        <div>
+                          <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Semester SGPA</span>
+                          <h3 className="text-2xl font-black text-sky-400 mt-0.5">
+                            {Number(selectedSemester.sgpa).toFixed(2)}
+                          </h3>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* CGPA Card */}
+                    <div className="relative overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5 backdrop-blur-md transition-all duration-300 hover:border-zinc-700/60 hover:bg-zinc-900/60">
+                      <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-emerald-500/5 blur-2xl" />
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-xl bg-emerald-500/10 p-2.5 text-emerald-400">
+                          <GraduationCap size={20} />
+                        </div>
+                        <div>
+                          <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Cumulative CGPA</span>
+                          <h3 className="text-2xl font-black text-emerald-400 mt-0.5">
+                            {selectedSemester.cgpa !== null ? Number(selectedSemester.cgpa).toFixed(2) : "N/A"}
+                          </h3>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Subjects headers row */}
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-bold text-zinc-200">Courses</h2>

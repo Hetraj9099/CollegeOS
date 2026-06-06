@@ -1,3 +1,5 @@
+import { db } from "../../database/connection.js";
+import { SemestersRepository } from "../semesters/repository.js";
 import { GradesRepository } from "./repository.js";
 import type {
   CreateGradeComponentPayload,
@@ -12,19 +14,71 @@ export class GradesService {
   }
 
   async createComponent(payload: CreateGradeComponentPayload) {
-    return this.repository.createComponent(payload);
+    const component = await this.repository.createComponent(payload);
+    const semResult = await db.query<{ semester_id: string }>(
+      "SELECT semester_id FROM subjects WHERE id = $1",
+      [payload.subject_id]
+    );
+    const semId = semResult.rows[0]?.semester_id;
+    if (semId) {
+      const semestersRepo = new SemestersRepository();
+      await semestersRepo.recalculateGpa(semId);
+    }
+    return component;
   }
 
   async updateComponent(id: string, payload: Partial<CreateGradeComponentPayload>) {
-    return this.repository.updateComponent(id, payload);
+    const component = await this.repository.updateComponent(id, payload);
+    if (component) {
+      const semResult = await db.query<{ semester_id: string }>(
+        "SELECT semester_id FROM subjects WHERE id = $1",
+        [component.subject_id]
+      );
+      const semId = semResult.rows[0]?.semester_id;
+      if (semId) {
+        const semestersRepo = new SemestersRepository();
+        await semestersRepo.recalculateGpa(semId);
+      }
+    }
+    return component;
   }
 
   async deleteComponent(id: string) {
-    return this.repository.deleteComponent(id);
+    const semResult = await db.query<{ semester_id: string }>(
+      `
+      SELECT s.semester_id 
+      FROM grade_components gc
+      JOIN subjects s ON s.id = gc.subject_id
+      WHERE gc.id = $1
+      `,
+      [id]
+    );
+    const semId = semResult.rows[0]?.semester_id;
+    const component = await this.repository.deleteComponent(id);
+    if (semId) {
+      const semestersRepo = new SemestersRepository();
+      await semestersRepo.recalculateGpa(semId);
+    }
+    return component;
   }
 
   async recordGrade(payload: RecordGradePayload) {
-    return this.repository.recordGrade(payload);
+    const grade = await this.repository.recordGrade(payload);
+    const semResult = await db.query<{ semester_id: string }>(
+      `
+      SELECT s.semester_id 
+      FROM grade_components gc
+      JOIN subjects s ON s.id = gc.subject_id
+      WHERE gc.id = $1
+      `,
+      [payload.component_id]
+    );
+    const semId = semResult.rows[0]?.semester_id;
+    if (semId) {
+      const semestersRepo = new SemestersRepository();
+      await semestersRepo.recalculateGpa(semId);
+    }
+    return grade;
   }
 
   async getSubjectGradesSummary(subjectId: string) {

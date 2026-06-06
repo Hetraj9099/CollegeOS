@@ -3,6 +3,12 @@ import type { Semester, CreateSemesterPayload } from "./types.js";
 
 export class SemestersRepository {
   async list() {
+    // Recalculate GPA for all semesters to keep DB fresh
+    const semestersResult = await db.query<{ id: string }>("SELECT id FROM semesters");
+    for (const sem of semestersResult.rows) {
+      await this.recalculateGpa(sem.id);
+    }
+
     const result = await db.query<Semester>(
       "SELECT * FROM semesters ORDER BY semester_number ASC"
     );
@@ -61,5 +67,86 @@ export class SemestersRepository {
   async delete(id: string) {
     const result = await db.query<Semester>("DELETE FROM semesters WHERE id = $1 RETURNING *", [id]);
     return result.rows[0] ?? null;
+  }
+
+  async recalculateGpa(semesterId: string) {
+    // 1. Get all subjects in the semester
+    const subjectsResult = await db.query<{ id: string; credits: string }>(
+      "SELECT id, credits::text FROM subjects WHERE semester_id = $1",
+      [semesterId]
+    );
+
+    let totalPoints = 0;
+    let totalCredits = 0;
+
+    for (const sub of subjectsResult.rows) {
+      // 2. Fetch all components and grades for this subject
+      const componentsResult = await db.query<{ max_marks: string; weight_percentage: string; obtained_marks: string | null }>(
+        `
+        SELECT 
+          gc.max_marks::text, 
+          gc.weight_percentage::text, 
+          g.obtained_marks::text AS obtained_marks
+        FROM grade_components gc
+        LEFT JOIN grades g ON g.component_id = gc.id
+        WHERE gc.subject_id = $1
+        `,
+        [sub.id]
+      );
+
+      let totalWeightSubmitted = 0;
+      let earnedPoints = 0;
+
+      for (const comp of componentsResult.rows) {
+        if (comp.obtained_marks !== null) {
+          totalWeightSubmitted += Number(comp.weight_percentage);
+          earnedPoints += (Number(comp.obtained_marks) / Number(comp.max_marks)) * Number(comp.weight_percentage);
+        }
+      }
+
+      // If at least one component has a grade, we include this subject in the GPA calculation
+      if (totalWeightSubmitted > 0) {
+        const calculatedPercentage = (earnedPoints / totalWeightSubmitted) * 100;
+        
+        // Map percentage to grade points
+        let gradePoints = 0;
+        if (calculatedPercentage >= 80) gradePoints = 10;
+        else if (calculatedPercentage >= 70) gradePoints = 9;
+        else if (calculatedPercentage >= 60) gradePoints = 8;
+        else if (calculatedPercentage >= 55) gradePoints = 7;
+        else if (calculatedPercentage >= 50) gradePoints = 6;
+        else if (calculatedPercentage >= 45) gradePoints = 5;
+        else if (calculatedPercentage >= 40) gradePoints = 4;
+        else gradePoints = 0; // F grade
+
+        const credits = Number(sub.credits);
+        totalPoints += credits * gradePoints;
+        totalCredits += credits;
+      }
+    }
+
+    const sgpa = totalCredits > 0 ? Number((totalPoints / totalCredits).toFixed(2)) : null;
+
+    // Update SGPA for this semester
+    await db.query("UPDATE semesters SET sgpa = $1 WHERE id = $2", [sgpa, semesterId]);
+
+    // Recalculate CGPA for all semesters cumulatively
+    const semestersResult = await db.query<{ id: string; semester_number: number; sgpa: string | null }>(
+      "SELECT id, semester_number, sgpa::text AS sgpa FROM semesters ORDER BY semester_number ASC"
+    );
+
+    let cumulativePoints = 0;
+    let cumulativeCount = 0;
+
+    for (const sem of semestersResult.rows) {
+      if (sem.sgpa !== null) {
+        cumulativePoints += Number(sem.sgpa);
+        cumulativeCount++;
+        const currentCgpa = Number((cumulativePoints / cumulativeCount).toFixed(2));
+        await db.query("UPDATE semesters SET cgpa = $1 WHERE id = $2", [currentCgpa, sem.id]);
+      } else {
+        await db.query("UPDATE semesters SET cgpa = NULL WHERE id = $2", [sem.id]);
+      }
+    }
   }
 }
