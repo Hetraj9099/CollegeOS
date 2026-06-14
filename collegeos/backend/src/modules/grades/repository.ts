@@ -10,7 +10,7 @@ export class GradesRepository {
   // --- Grade Components ---
   async listComponents(subjectId: string) {
     const result = await db.query<GradeComponent>(
-      "SELECT * FROM grade_components WHERE subject_id = $1 ORDER BY created_at ASC",
+      "SELECT * FROM grade_components WHERE subject_id = $1::uuid ORDER BY created_at ASC",
       [subjectId]
     );
     return result.rows;
@@ -18,7 +18,7 @@ export class GradesRepository {
 
   async findComponentById(id: string) {
     const result = await db.query<GradeComponent>(
-      "SELECT * FROM grade_components WHERE id = $1",
+      "SELECT * FROM grade_components WHERE id = $1::uuid",
       [id]
     );
     return result.rows[0] ?? null;
@@ -28,7 +28,7 @@ export class GradesRepository {
     const result = await db.query<GradeComponent>(
       `
       INSERT INTO grade_components (subject_id, component_name, max_marks, weight_percentage)
-      VALUES ($1, $2, $3, $4)
+      VALUES ($1::uuid, $2, $3::numeric, $4::numeric)
       RETURNING *
       `,
       [
@@ -46,12 +46,12 @@ export class GradesRepository {
       `
       UPDATE grade_components
       SET
-        subject_id = COALESCE($1, subject_id),
-        component_name = COALESCE($2, component_name),
-        max_marks = COALESCE($3, max_marks),
-        weight_percentage = COALESCE($4, weight_percentage),
+        subject_id = COALESCE($1::uuid, subject_id),
+        component_name = COALESCE($2::text, component_name),
+        max_marks = COALESCE($3::numeric, max_marks),
+        weight_percentage = COALESCE($4::numeric, weight_percentage),
         updated_at = NOW()
-      WHERE id = $5
+      WHERE id = $5::uuid
       RETURNING *
       `,
       [
@@ -67,7 +67,7 @@ export class GradesRepository {
 
   async deleteComponent(id: string) {
     const result = await db.query<GradeComponent>(
-      "DELETE FROM grade_components WHERE id = $1 RETURNING *",
+      "DELETE FROM grade_components WHERE id = $1::uuid RETURNING *",
       [id]
     );
     return result.rows[0] ?? null;
@@ -76,7 +76,7 @@ export class GradesRepository {
   // --- Grades (Obtained Marks) ---
   async findGradeByComponentId(componentId: string) {
     const result = await db.query<Grade>(
-      "SELECT * FROM grades WHERE component_id = $1",
+      "SELECT * FROM grades WHERE component_id = $1::uuid",
       [componentId]
     );
     return result.rows[0] ?? null;
@@ -86,7 +86,7 @@ export class GradesRepository {
     const result = await db.query<Grade>(
       `
       INSERT INTO grades (component_id, obtained_marks)
-      VALUES ($1, $2)
+      VALUES ($1::uuid, $2::numeric)
       ON CONFLICT (component_id) DO UPDATE
       SET obtained_marks = EXCLUDED.obtained_marks
       RETURNING *
@@ -106,7 +106,7 @@ export class GradesRepository {
       color: string;
       course_type: "THEORY" | "THEORY_PRACTICAL";
     }>(
-      "SELECT id, name, course_code, credits, color, course_type FROM subjects WHERE id = $1",
+      "SELECT id, name, course_code, credits, color, course_type FROM subjects WHERE id = $1::uuid",
       [subjectId]
     );
 
@@ -132,7 +132,7 @@ export class GradesRepository {
         g.obtained_marks::text AS obtained_marks
       FROM grade_components gc
       LEFT JOIN grades g ON g.component_id = gc.id
-      WHERE gc.subject_id = $1
+      WHERE gc.subject_id = $1::uuid
       ORDER BY gc.created_at ASC
       `,
       [subjectId]

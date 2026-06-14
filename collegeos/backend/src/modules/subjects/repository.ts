@@ -5,7 +5,7 @@ export class SubjectsRepository {
   async list(semesterId?: string) {
     if (semesterId) {
       const result = await db.query<Subject>(
-        "SELECT * FROM subjects WHERE semester_id = $1 ORDER BY name ASC",
+        "SELECT * FROM subjects WHERE semester_id = $1::uuid ORDER BY name ASC",
         [semesterId]
       );
       return result.rows;
@@ -15,7 +15,7 @@ export class SubjectsRepository {
   }
 
   async findById(id: string) {
-    const result = await db.query<Subject>("SELECT * FROM subjects WHERE id = $1", [id]);
+    const result = await db.query<Subject>("SELECT * FROM subjects WHERE id = $1::uuid", [id]);
     return result.rows[0] ?? null;
   }
 
@@ -23,7 +23,7 @@ export class SubjectsRepository {
     const result = await db.query<Subject>(
       `
       INSERT INTO subjects (semester_id, name, course_code, credits, color, course_type)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      VALUES ($1::uuid, $2, $3, $4::numeric, $5, $6)
       RETURNING *
       `,
       [
@@ -43,14 +43,14 @@ export class SubjectsRepository {
       `
       UPDATE subjects
       SET
-        semester_id = COALESCE($1, semester_id),
-        name = COALESCE($2, name),
-        course_code = COALESCE($3, course_code),
-        credits = COALESCE($4, credits),
-        color = COALESCE($5, color),
-        course_type = COALESCE($6, course_type),
+        semester_id = COALESCE($1::uuid, semester_id),
+        name = COALESCE($2::text, name),
+        course_code = COALESCE($3::text, course_code),
+        credits = COALESCE($4::numeric, credits),
+        color = COALESCE($5::text, color),
+        course_type = COALESCE($6::text, course_type),
         updated_at = NOW()
-      WHERE id = $7
+      WHERE id = $7::uuid
       RETURNING *
       `,
       [
@@ -67,7 +67,7 @@ export class SubjectsRepository {
   }
 
   async delete(id: string) {
-    const result = await db.query<Subject>("DELETE FROM subjects WHERE id = $1 RETURNING *", [id]);
+    const result = await db.query<Subject>("DELETE FROM subjects WHERE id = $1::uuid RETURNING *", [id]);
     return result.rows[0] ?? null;
   }
 }
