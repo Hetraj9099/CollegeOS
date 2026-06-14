@@ -72,7 +72,7 @@ export class SemestersRepository {
   async recalculateGpa(semesterId: string) {
     // 1. Get all subjects in the semester
     const subjectsResult = await db.query<{ id: string; credits: string }>(
-      "SELECT id, credits::text FROM subjects WHERE semester_id = $1",
+      "SELECT id, credits::text FROM subjects WHERE semester_id = $1::uuid",
       [semesterId]
     );
 
@@ -89,7 +89,7 @@ export class SemestersRepository {
           g.obtained_marks::text AS obtained_marks
         FROM grade_components gc
         LEFT JOIN grades g ON g.component_id = gc.id
-        WHERE gc.subject_id = $1
+        WHERE gc.subject_id = $1::uuid
         `,
         [sub.id]
       );
@@ -128,7 +128,7 @@ export class SemestersRepository {
     const sgpa = totalCredits > 0 ? Number((totalPoints / totalCredits).toFixed(2)) : null;
 
     // Update SGPA for this semester
-    await db.query("UPDATE semesters SET sgpa = $1::numeric WHERE id = $2", [sgpa, semesterId]);
+    await db.query("UPDATE semesters SET sgpa = $1::numeric WHERE id = $2::uuid", [sgpa, semesterId]);
 
     // Recalculate CGPA for all semesters cumulatively
     const semestersResult = await db.query<{ id: string; semester_number: number; sgpa: string | null }>(
@@ -143,9 +143,9 @@ export class SemestersRepository {
         cumulativePoints += Number(sem.sgpa);
         cumulativeCount++;
         const currentCgpa = Number((cumulativePoints / cumulativeCount).toFixed(2));
-        await db.query("UPDATE semesters SET cgpa = $1::numeric WHERE id = $2", [currentCgpa, sem.id]);
+        await db.query("UPDATE semesters SET cgpa = $1::numeric WHERE id = $2::uuid", [currentCgpa, sem.id]);
       } else {
-        await db.query("UPDATE semesters SET cgpa = NULL WHERE id = $2", [sem.id]);
+        await db.query("UPDATE semesters SET cgpa = NULL WHERE id = $2::uuid", [sem.id]);
       }
     }
   }

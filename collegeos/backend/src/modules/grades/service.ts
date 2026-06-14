@@ -16,7 +16,7 @@ export class GradesService {
   async createComponent(payload: CreateGradeComponentPayload) {
     const component = await this.repository.createComponent(payload);
     const semResult = await db.query<{ semester_id: string }>(
-      "SELECT semester_id FROM subjects WHERE id = $1",
+      "SELECT semester_id FROM subjects WHERE id = $1::uuid",
       [payload.subject_id]
     );
     const semId = semResult.rows[0]?.semester_id;
@@ -31,7 +31,7 @@ export class GradesService {
     const component = await this.repository.updateComponent(id, payload);
     if (component) {
       const semResult = await db.query<{ semester_id: string }>(
-        "SELECT semester_id FROM subjects WHERE id = $1",
+        "SELECT semester_id FROM subjects WHERE id = $1::uuid",
         [component.subject_id]
       );
       const semId = semResult.rows[0]?.semester_id;
@@ -49,7 +49,7 @@ export class GradesService {
       SELECT s.semester_id 
       FROM grade_components gc
       JOIN subjects s ON s.id = gc.subject_id
-      WHERE gc.id = $1
+      WHERE gc.id = $1::uuid
       `,
       [id]
     );
@@ -69,7 +69,7 @@ export class GradesService {
       SELECT s.semester_id 
       FROM grade_components gc
       JOIN subjects s ON s.id = gc.subject_id
-      WHERE gc.id = $1
+      WHERE gc.id = $1::uuid
       `,
       [payload.component_id]
     );
