@@ -43,11 +43,11 @@ export class SemestersRepository {
       `
       UPDATE semesters
       SET
-        semester_number = COALESCE($1, semester_number),
-        academic_year = COALESCE($2, academic_year),
-        total_credits = COALESCE($3, total_credits),
-        sgpa = COALESCE($4, sgpa),
-        cgpa = COALESCE($5, cgpa),
+        semester_number = COALESCE($1::integer, semester_number),
+        academic_year = COALESCE($2::text, academic_year),
+        total_credits = COALESCE($3::integer, total_credits),
+        sgpa = COALESCE($4::numeric, sgpa),
+        cgpa = COALESCE($5::numeric, cgpa),
         updated_at = NOW()
       WHERE id = $6
       RETURNING *
@@ -128,7 +128,7 @@ export class SemestersRepository {
     const sgpa = totalCredits > 0 ? Number((totalPoints / totalCredits).toFixed(2)) : null;
 
     // Update SGPA for this semester
-    await db.query("UPDATE semesters SET sgpa = $1 WHERE id = $2", [sgpa, semesterId]);
+    await db.query("UPDATE semesters SET sgpa = $1::numeric WHERE id = $2", [sgpa, semesterId]);
 
     // Recalculate CGPA for all semesters cumulatively
     const semestersResult = await db.query<{ id: string; semester_number: number; sgpa: string | null }>(
@@ -143,7 +143,7 @@ export class SemestersRepository {
         cumulativePoints += Number(sem.sgpa);
         cumulativeCount++;
         const currentCgpa = Number((cumulativePoints / cumulativeCount).toFixed(2));
-        await db.query("UPDATE semesters SET cgpa = $1 WHERE id = $2", [currentCgpa, sem.id]);
+        await db.query("UPDATE semesters SET cgpa = $1::numeric WHERE id = $2", [currentCgpa, sem.id]);
       } else {
         await db.query("UPDATE semesters SET cgpa = NULL WHERE id = $2", [sem.id]);
       }
