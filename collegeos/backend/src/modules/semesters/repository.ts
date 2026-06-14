@@ -145,7 +145,7 @@ export class SemestersRepository {
         const currentCgpa = Number((cumulativePoints / cumulativeCount).toFixed(2));
         await db.query("UPDATE semesters SET cgpa = $1::numeric WHERE id = $2::uuid", [currentCgpa, sem.id]);
       } else {
-        await db.query("UPDATE semesters SET cgpa = NULL WHERE id = $2::uuid", [sem.id]);
+        await db.query("UPDATE semesters SET cgpa = NULL WHERE id = $1::uuid", [sem.id]);
       }
     }
   }
